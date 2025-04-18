@@ -20,18 +20,18 @@ private:
     };
 
     vector<Node*> buckets;
-    size_t size;
+    size_t bucket_size;
 
-    size_t hash(const string& key) const {
+    [[nodiscard]] size_t hash(const string& key) const {
         size_t hash = 5381;
         for (char c: key) {
             hash = ((hash << 5) + hash) + static_cast<unsigned char>(c);
         }
-        return hash % buckets.size();
+        return hash % size();
     }
 
 public:
-    explicit HashMap(size_t capacity = 16) : buckets(capacity, nullptr), size(0) {}
+    explicit HashMap(size_t size = 16) : buckets(size, nullptr), bucket_size(0) {}
 
     ~HashMap() {
         for (Node* head: buckets) {
@@ -56,7 +56,7 @@ public:
         Node* new_node = new Node(key, value);
         new_node->next = buckets[index];
         buckets[index] = new_node;
-        ++size;
+        bucket_size++;
     }
 
     bool at(const string& key, V& out) const {
@@ -95,7 +95,7 @@ public:
                     buckets[index] = head->next;
                 }
                 delete head;
-                --size;
+                --bucket_size;
                 return;
             }
             prev = head;
@@ -108,12 +108,12 @@ public:
         return at(key, out);
     }
 
-    [[nodiscard]] size_t capacity() const {
-        return size;
+    [[nodiscard]] size_t size() const {
+        return bucket_size;
     }
 
     [[nodiscard]] bool empty() const {
-        return size == 0;
+        return bucket_size == 0;
     }
 
     class Iterator {
@@ -123,8 +123,11 @@ public:
         Node* current;
 
         void advance_to_next_valid() {
-            while (!current && ++bucket_index < buckets.capacity()) {
+            while (bucket_index < buckets.size() && current == nullptr) {
                 current = buckets[bucket_index];
+                if (!current) {
+                    bucket_index++;
+                }
             }
         }
 
@@ -140,6 +143,8 @@ public:
                 current = current->next;
             }
             if (!current) {
+                bucket_index++;
+                current = nullptr;
                 advance_to_next_valid();
             }
             return *this;
@@ -155,11 +160,17 @@ public:
     };
 
     Iterator begin() const {
-        return Iterator(buckets, 0, buckets[0]);
+        size_t idx = 0;
+        Node* cur = nullptr;
+        while (idx < buckets.size() && !cur) {
+            cur = buckets[idx];
+            if (!cur) ++ idx;
+        }
+        return Iterator(buckets,idx,cur);
     }
 
     Iterator end() const {
-        return Iterator(buckets, buckets.capacity(), nullptr);
+        return Iterator(buckets, buckets.size(), nullptr);
     }
 };
 
