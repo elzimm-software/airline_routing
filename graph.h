@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 using std::string;
@@ -98,7 +99,6 @@ public:
     [[nodiscard]] vector<string> get_all_airports() const {
         vector<string> v;
         for (const auto& vertex: vertexes) {
-            std::cout << vertex.first << std::endl;
             v.push_back(vertex.first);
         }
         return v;
@@ -163,6 +163,53 @@ public:
         }
     }
 
+    struct UndirectedEdge {
+        int cost;
+        string to;
+
+    public:
+        UndirectedEdge(int cost, string to): cost(cost), to(std::move(to)) {}
+    };
+
+    class UndirectedGraph {
+        unordered_map<string, vector<UndirectedEdge>> edges;
+
+        int find_edge_index(const string & from, const string& to) const {
+            const auto& neighbors = edges.at(from);
+            for (size_t i = 0; i < neighbors.size(); i++) {
+                if (neighbors[i].to == to) {
+                    return static_cast<int>(i);
+                }
+            }
+            return -1;
+        }
+
+    public:
+        UndirectedGraph(const Graph& g) {
+            for (const auto& vertex: g.get_all_airports()) {
+                edges[vertex];
+            }
+
+            for (const auto& [vertex_key, vertex_value]: g.vertexes) {
+                for (const auto& [key,value]: vertex_value->get_edges()) {
+                    edges[vertex_key];
+                    edges[key];
+                    int idx_vertex = find_edge_index(vertex_key, key);
+                    int idx_edge = find_edge_index(key, vertex_key);
+
+                    if (idx_vertex != -1) {
+                        if (value->get_cost() < edges[vertex_key][idx_vertex].cost) {
+                            edges[vertex_key][idx_vertex].cost = value->get_cost();
+                            edges[key][idx_edge].cost=value->get_cost();
+                        }
+                    } else {
+                        edges[vertex_key].emplace_back(value->get_cost(), key);
+                        edges[key].emplace_back(value->get_cost(), vertex_key);
+                    }
+                }
+            }
+        }
+    };
 };
 
 #endif
