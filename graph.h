@@ -9,6 +9,8 @@
 using std::string;
 using std::exception;
 
+
+
 class Airport;
 
 class Flight {
@@ -18,6 +20,14 @@ private:
     int cost;
 public:
     Flight(Airport* destination, int distance, int cost): destination(destination), distance(distance), cost(cost) {}
+
+    [[nodiscard]] int get_distance() const {
+        return distance;
+    }
+
+    [[nodiscard]] int get_cost() const {
+        return cost;
+    }
 };
 
 class Airport {
@@ -28,6 +38,10 @@ private:
 public:
     Airport(string  code, string  state): code(std::move(code)), state(std::move(state)) {}
 
+    [[nodiscard]] HashMap<Flight*> get_edges() const {
+        return edges;
+    }
+
     void add_flight(const string& code_arrive, Airport* arrive, int distance, int cost) {
         edges.insert(code_arrive, new Flight(arrive, distance, cost));
     }
@@ -36,13 +50,17 @@ public:
 
 class Graph {
 private:
-    HashMap<Airport*> vertexes;
     HashMap<vector<Airport*>> by_state;
+    HashMap<Airport*> vertexes;
 public:
     Graph() = default;
 
     explicit Graph(size_t capacity) {
         vertexes = HashMap<Airport*>(capacity);
+    }
+
+    [[nodiscard]] HashMap<Airport*> get_vertexes() const {
+        return vertexes;
     }
 
     void add_airport(const string& code, const string& state) {
@@ -70,6 +88,7 @@ public:
     bool airport_exists(const string& code) {
         return vertexes.contains(code);
     }
+
 };
 
 #endif

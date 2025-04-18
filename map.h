@@ -16,7 +16,7 @@ private:
         bool occupied;
         Node* next;
 
-        Node(string key, V value): key(std::move(key)), value(std::move(value)), occupied(true), next(nullptr) {}
+        Node(string key, V value) : key(std::move(key)), value(std::move(value)), occupied(true), next(nullptr) {}
     };
 
     vector<Node*> buckets;
@@ -29,8 +29,9 @@ private:
         }
         return hash % buckets.size();
     }
+
 public:
-    explicit HashMap(size_t capacity = 16): buckets(capacity, nullptr), size(0) {}
+    explicit HashMap(size_t capacity = 16) : buckets(capacity, nullptr), size(0) {}
 
     ~HashMap() {
         for (Node* head: buckets) {
@@ -53,7 +54,7 @@ public:
             head = head->next;
         }
         Node* new_node = new Node(key, value);
-        new_node->next=buckets[index];
+        new_node->next = buckets[index];
         buckets[index] = new_node;
         ++size;
     }
@@ -113,6 +114,52 @@ public:
 
     [[nodiscard]] bool empty() const {
         return size == 0;
+    }
+
+    class Iterator {
+    private:
+        const vector<Node*>& buckets;
+        size_t bucket_index;
+        Node* current;
+
+        void advance_to_next_valid() {
+            while (!current && ++bucket_index < buckets.capacity()) {
+                current = buckets[bucket_index];
+            }
+        }
+
+    public:
+        Iterator(const vector<Node*>& b, size_t i, Node* e): buckets(b), bucket_index(i), current(e) {
+            if (!current) {
+                advance_to_next_valid();
+            }
+        }
+
+        Iterator& operator++() {
+            if (current) {
+                current = current->next;
+            }
+            if (!current) {
+                advance_to_next_valid();
+            }
+            return *this;
+        }
+
+        std::pair<const std::string&, V&> operator*() const {
+            return {current->key, current->value};
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return current != other.current || bucket_index != other.bucket_index;
+        }
+    };
+
+    Iterator begin() const {
+        return Iterator(buckets, 0, buckets[0]);
+    }
+
+    Iterator end() const {
+        return Iterator(buckets, buckets.capacity(), nullptr);
     }
 };
 
