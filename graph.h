@@ -4,12 +4,13 @@
 
 #include <string>
 #include <iostream>
-#include "map.h"
+#include <unordered_map>
+#include <vector>
 
 using std::string;
 using std::exception;
-
-
+using std::unordered_map;
+using std::vector;
 
 class Airport;
 
@@ -28,65 +29,138 @@ public:
     [[nodiscard]] int get_cost() const {
         return cost;
     }
+
+    bool is_terminal();
 };
 
 class Airport {
 private:
-    HashMap<Flight*> edges;
+    unordered_map<string, Flight*> edges;
+    int incoming;
+    int outgoing;
     string code; // maybe unnecessary
     string state;
 public:
-    Airport(string  code, string  state): code(std::move(code)), state(std::move(state)) {}
+    Airport(string  code, string  state): code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
 
-    [[nodiscard]] HashMap<Flight*> get_edges() const {
+    [[nodiscard]] unordered_map<string, Flight*> get_edges() const {
         return edges;
     }
 
-    void add_flight(const string& code_arrive, Airport* arrive, int distance, int cost) {
-        edges.insert(code_arrive, new Flight(arrive, distance, cost));
+    [[nodiscard]] string get_code() const {
+        return code;
     }
 
+    void add_flight(const string& code_arrive, Airport* arrive, int distance, int cost) {
+        edges.insert({code_arrive, new Flight(arrive, distance, cost)});
+    }
+
+    bool is_terminal() {
+        return edges.empty();
+    }
+
+    void inc_incoming() {
+        incoming++;
+    }
+
+    void inc_outgoing() {
+        outgoing++;
+    }
+
+    int total_flights() {
+        return incoming+outgoing;
+    }
 };
+
+bool Flight::is_terminal() {
+    return destination->get_edges().empty();
+}
 
 class Graph {
 private:
-    HashMap<vector<Airport*>> by_state;
-    HashMap<Airport*> vertexes;
+    unordered_map<string, vector<Airport*>> by_state;
+    unordered_map<string, Airport*> vertexes;
 public:
     Graph() = default;
 
     explicit Graph(size_t capacity) {
-        vertexes = HashMap<Airport*>(capacity);
+        vertexes = unordered_map<string, Airport*>(capacity);
     }
 
-    [[nodiscard]] HashMap<Airport*> get_vertexes() const {
+    [[nodiscard]] unordered_map<string, Airport*> get_vertexes() const {
         return vertexes;
+    }
+
+    [[nodiscard]] unordered_map<string, vector<Airport*>> get_states() const {
+        return by_state;
+    }
+
+    [[nodiscard]] vector<string> get_all_airports() const {
+        vector<string> v;
+        for (const auto& vertex: vertexes) {
+            std::cout << vertex.first << std::endl;
+            v.push_back(vertex.first);
+        }
+        return v;
+    }
+
+    [[nodiscard]] int get_edge_dist(const string& from, const string& to) const {
+        Airport* airport = vertexes.at(from);
+        Flight* flight = airport->get_edges().at(to);
+        return flight->get_distance();
+    }
+
+    [[nodiscard]] int get_edge_cost(const string& from, const string& to) const {
+        Airport* airport=vertexes.at(from);
+        Flight* flight=airport->get_edges().at(to);
+        return flight->get_cost();
     }
 
     void add_airport(const string& code, const string& state) {
         auto ap = new Airport(code, state);
-        vertexes.insert(code, ap);
+        vertexes.insert({code, ap});
         if (!by_state.contains(state)) {
-            by_state.insert(state, {ap});
+            by_state.insert({state, {ap}});
         } else {
-            by_state.get(state).push_back(ap);
+            by_state.at(state).push_back(ap);
         }
     }
 
     void add_flight(const string& code_depart, const string& code_arrive, int distance, int cost) {
-        Airport* depart;
-        if (!vertexes.at(code_depart, depart)) {
-            throw std::runtime_error("Invalid departure airport");
-        }
-        Airport* arrive;
-        if (!vertexes.at(code_arrive, arrive)) {
-            throw std::runtime_error("Invalid arrival airport");
-        }
+        Airport* depart = vertexes.at(code_depart);
+        Airport* arrive = vertexes.at(code_arrive);
+        depart->inc_outgoing();
+        arrive->inc_incoming();
         depart->add_flight(code_arrive, arrive, distance, cost);
     }
 
     bool airport_exists(const string& code) {
         return vertexes.contains(code);
+    }
+
+    struct MiniEdge {
+        string code;
+        int connections;
+
+        MiniEdge(string code, int connections): code(std::move(code)), connections(connections) {}
+
+
+    };
+
+    static bool compareMiniEdge(const MiniEdge& lhs, const MiniEdge& rhs) {
+        return lhs.connections > rhs.connections;
+    }
+
+    void flight_connections() {
+        vector<MiniEdge> v;
+        std::cout << "Airport\tConnections" << std::endl;
+        for (const auto& airport: vertexes) {
+            v.push_back(MiniEdge(airport.first, airport.second->total_flights()));
+        }
+        std::sort(v.begin(), v.end(), compareMiniEdge);
+        for (const MiniEdge& edge: v) {
+            std::cout << edge.code << "\t" << edge.connections << std::endl;
+        }
     }
 
 };

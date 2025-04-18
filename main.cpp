@@ -3,6 +3,7 @@
 #include <string>
 #include <regex>
 #include "graph.h"
+#include "pathing.h"
 
 using std::string;
 using std::ifstream;
@@ -40,6 +41,13 @@ Graph parse_csv(const string& filename) {
 }
 
 int main() {
-    Graph g = parse_csv("airports.csv");
+    Graph g = parse_csv("airports.csv");\
+    //find_paths_from(g,"IAD").to("MIA");
+
+    //find_paths_from(g,"ATL").to_state("FL");
+
+    //find_path_with_n_stops(g, "LAX", "MIA", 3);
+
+    g.flight_connections();
     return 0;
 }
