@@ -42,17 +42,10 @@ Graph parse_csv(const string& filename) {
 
 int main() {
     Graph g = parse_csv("airports.csv");\
-    /*
-    auto p = find_paths_from(g,"IAD").to("MIA");
-    p.print_path();
-    std::cout << std::endl << p.distance << "  " << p.cost << std::endl;
-    */
+    //find_paths_from(g,"IAD").to("MIA");
 
-    auto p = find_paths_from(g,"ATL").to_state("FL");
-    std::cout << "Path\tLength\tCost" << std::endl;
-    for (auto& path: p) {
-        path.second.print_path();
-        std::cout << "\t" << path.second.distance<< "\t" << path.second.cost << std::endl;
-    }
+    //find_paths_from(g,"ATL").to_state("FL");
+
+    find_path_with_n_stops(g, "LAX", "MIA", 3);
     return 0;
 }
