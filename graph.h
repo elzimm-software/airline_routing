@@ -36,10 +36,12 @@ public:
 class Airport {
 private:
     unordered_map<string, Flight*> edges;
+    int incoming;
+    int outgoing;
     string code; // maybe unnecessary
     string state;
 public:
-    Airport(string  code, string  state): code(std::move(code)), state(std::move(state)) {}
+    Airport(string  code, string  state): code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
 
     [[nodiscard]] unordered_map<string, Flight*> get_edges() const {
         return edges;
@@ -57,6 +59,17 @@ public:
         return edges.empty();
     }
 
+    void inc_incoming() {
+        incoming++;
+    }
+
+    void inc_outgoing() {
+        outgoing++;
+    }
+
+    int total_flights() {
+        return incoming+outgoing;
+    }
 };
 
 bool Flight::is_terminal() {
@@ -116,11 +129,38 @@ public:
     void add_flight(const string& code_depart, const string& code_arrive, int distance, int cost) {
         Airport* depart = vertexes.at(code_depart);
         Airport* arrive = vertexes.at(code_arrive);
+        depart->inc_outgoing();
+        arrive->inc_incoming();
         depart->add_flight(code_arrive, arrive, distance, cost);
     }
 
     bool airport_exists(const string& code) {
         return vertexes.contains(code);
+    }
+
+    struct MiniEdge {
+        string code;
+        int connections;
+
+        MiniEdge(string code, int connections): code(std::move(code)), connections(connections) {}
+
+
+    };
+
+    static bool compareMiniEdge(const MiniEdge& lhs, const MiniEdge& rhs) {
+        return lhs.connections > rhs.connections;
+    }
+
+    void flight_connections() {
+        vector<MiniEdge> v;
+        std::cout << "Airport\tConnections" << std::endl;
+        for (const auto& airport: vertexes) {
+            v.push_back(MiniEdge(airport.first, airport.second->total_flights()));
+        }
+        std::sort(v.begin(), v.end(), compareMiniEdge);
+        for (const MiniEdge& edge: v) {
+            std::cout << edge.code << "\t" << edge.connections << std::endl;
+        }
     }
 
 };

@@ -46,6 +46,8 @@ int main() {
 
     //find_paths_from(g,"ATL").to_state("FL");
 
-    find_path_with_n_stops(g, "LAX", "MIA", 3);
+    //find_path_with_n_stops(g, "LAX", "MIA", 3);
+
+    g.flight_connections();
     return 0;
 }
