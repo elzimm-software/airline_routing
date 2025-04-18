@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 #include <iostream>
 #include <unordered_map>
@@ -34,13 +35,15 @@ struct Path {
 };
 
 struct Paths {
+    unordered_map<string, vector<Airport*>> by_state;
+    string from;
     unordered_map<string, int> dist;
     unordered_map<string, string> prev;
     unordered_map<string, int> cost;
 
-    Paths(unordered_map<string, int> dist, unordered_map<string, int> cost, unordered_map<string, string> prev): dist(std::move(dist)), cost(std::move(cost)), prev(std::move(prev)) {}
+    Paths(string from, unordered_map<string, vector<Airport*>> by_state, unordered_map<string, int> dist, unordered_map<string, int> cost, unordered_map<string, string> prev): from(std::move(from)), by_state(std::move(by_state)), dist(std::move(dist)), cost(std::move(cost)), prev(std::move(prev)) {}
 
-    Path to(const string& to) {
+    void to(const string& to) {
         Path p;
         p.distance = dist[to];
         p.cost = cost[to];
@@ -50,8 +53,37 @@ struct Paths {
             code = prev[code];
             p.path.push_back(code);
         }
+        if (p.path.size() == 1) {
+            std::cout << "No such route exists." << std::endl;
+        }
         std::reverse(p.path.begin(),p.path.end());
-        return p;
+        std::cout << "Shortest route from " << from << " to " << to << ": ";
+        p.print_path();
+        std::cout << ". The length is " << p.distance << ". The cost is " << p.cost << "." << std::endl;
+    }
+
+    unordered_map<string, Path> to_state(const string& to) {
+        unordered_map<string, Path> out;
+        std::cout << "The shortest paths from " << from << " to " << to << " state airports are:" << std::endl;
+        std::cout << std::endl << "Path\tLength\tCost" << std::endl;
+        for (const Airport* airport: by_state[to]) {
+            string code = airport->get_code();
+            Path p;
+            p.distance = dist[code];
+            p.cost = cost[code];
+            p.path.push_back(code);
+            while (prev.contains(code)) {
+                code = prev[code];
+                p.path.push_back(code);
+            }
+            if (p.path.size() == 1) {
+                continue;
+            }
+            std::reverse(p.path.begin(), p.path.end());
+            p.print_path();
+            std::cout << "\t" << p.distance << "\t" << p.cost << std::endl;
+        }
+        return out;
     }
 };
 
@@ -90,7 +122,7 @@ Paths find_paths_from(const Graph& g, const string& from) {
         }
         current = u;
     }
-    return {dist,cost,prev};
+    return {from, g.get_states(), dist,cost,prev};
 }
 
 #endif

@@ -45,6 +45,10 @@ public:
         return edges;
     }
 
+    [[nodiscard]] string get_code() const {
+        return code;
+    }
+
     void add_flight(const string& code_arrive, Airport* arrive, int distance, int cost) {
         edges.insert({code_arrive, new Flight(arrive, distance, cost)});
     }
@@ -72,6 +76,10 @@ public:
 
     [[nodiscard]] unordered_map<string, Airport*> get_vertexes() const {
         return vertexes;
+    }
+
+    [[nodiscard]] unordered_map<string, vector<Airport*>> get_states() const {
+        return by_state;
     }
 
     [[nodiscard]] vector<string> get_all_airports() const {
