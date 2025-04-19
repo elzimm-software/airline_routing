@@ -1,10 +1,6 @@
-#include <string>
 #include "graph.h"
 #include "pathing.h"
 #include "tree.h"
-
-using std::string;
-using std::ifstream;
 
 int main() {
     auto g = Graph("airports.csv"); // Task 1
