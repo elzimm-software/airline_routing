@@ -1,62 +1,22 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <regex>
 #include "graph.h"
 #include "pathing.h"
 #include "tree.h"
 
-using std::string;
-using std::ifstream;
-using UndirectedGraph = Graph::UndirectedGraph;
-
-string get_state_code(const string& city) {
-    return city.substr(city.length() - 3, 2);
-}
-
-Graph parse_csv(const string& filename) {
-    Graph g(64);
-    ifstream file(filename);
-    string line;
-    string depart_code, arrive_code, depart_city, arrive_city, distance, cost;
-    std::getline(file, line);
-    while (file) {
-        std::getline(file, line);
-        std::istringstream ss(line);
-        std::getline(ss, depart_code, ',');
-        std::getline(ss, arrive_code, ',');
-        std::getline(ss, depart_city, ',');
-        std::getline(ss, depart_city, ',');
-        std::getline(ss, arrive_city, ',');
-        std::getline(ss, arrive_city, ',');
-        std::getline(ss, distance, ',');
-        std::getline(ss, cost, ',');
-        if (!g.airport_exists(depart_code)) {
-            g.add_airport(depart_code, get_state_code(depart_city));
-        }
-        if (!g.airport_exists(arrive_code)) {
-            g.add_airport(arrive_code, get_state_code(arrive_city));
-        }
-        g.add_flight(depart_code, arrive_code, stoi(distance), stoi(cost));
-    }
-    return g;
-}
-
 int main() {
-    Graph g = parse_csv("airports.csv");\
-    //find_paths_from(g,"IAD").to("MIA");
+    auto g = Graph("airports.csv"); // Task 1
+    find_paths_from(g,"IAD").to("MIA"); // Task 2
+    find_paths_from(g,"ATL").to_state("FL"); // Task 3
+    find_path_with_n_stops(g, "LAX", "MIA", 3); // Task 4
+    g.flight_connections(); // Task 5
 
-    //find_paths_from(g,"ATL").to_state("FL");
-
-    //find_path_with_n_stops(g, "LAX", "MIA", 3);
-
-    //g.flight_connections();
+    // Task 6 not represented here
+    // conversion from Graph to UndirectedGraph performed implicitly
+    // when passing Graph to a function that takes UndirectedGraph
 
     Tree prim, kruskal;
-
-    prim.prim_mst(g);
-    kruskal.kruskal_mst(g);
-
+    prim.prim_mst(g); // Task 7
+    kruskal.kruskal_mst(g); // Task 8
+    prim.print();
     kruskal.print();
 
     return 0;
