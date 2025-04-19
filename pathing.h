@@ -6,12 +6,11 @@
 #include <utility>
 #include <vector>
 #include <iostream>
-#include <unordered_map>
 #include "graph.h"
+#include "map.h"
 
 using std::string;
 using std::vector;
-using std::unordered_map;
 
 const int INF = std::numeric_limits<int>::max();
 
@@ -42,18 +41,18 @@ struct Path {
 };
 
 struct Paths {
-    unordered_map<string, vector<Airport*>> by_state;
+    Map<string, vector<Airport*>> by_state;
     string from;
-    unordered_map<string, int> dist;
-    unordered_map<string, string> prev;
-    unordered_map<string, int> cost;
+    Map<string, int> dist;
+    Map<string, string> prev;
+    Map<string, int> cost;
 
-    Paths(string from, unordered_map<string, vector<Airport*>> by_state, unordered_map<string, int> dist,
-          unordered_map<string, int> cost, unordered_map<string, string> prev) : from(std::move(from)),
-                                                                                 by_state(std::move(by_state)),
-                                                                                 dist(std::move(dist)),
-                                                                                 cost(std::move(cost)),
-                                                                                 prev(std::move(prev)) {}
+    Paths(string from, const Map<string, vector<Airport*>>& by_state, const Map<string, int>& dist,
+          const Map<string, int>& cost, const Map<string, string>& prev) : from(std::move(from)),
+                                                                                 by_state(by_state),
+                                                                                 dist(dist),
+                                                                                 cost(cost),
+                                                                                 prev(prev) {}
 
     void to(const string& to) {
         Path p;
@@ -75,8 +74,8 @@ struct Paths {
         std::cout << ". The length is " << p.distance << ". The cost is " << p.cost << "." << std::endl;
     }
 
-    unordered_map<string, Path> to_state(const string& to) {
-        unordered_map<string, Path> out;
+    Map<string, Path> to_state(const string& to) {
+        Map<string, Path> out;
         std::cout << "The shortest paths from " << from << " to " << to << " state airports are:" << std::endl;
         std::cout << std::endl << "Path\tLength\tCost" << std::endl;
         for (const Airport* airport: by_state[to]) {
@@ -101,10 +100,10 @@ struct Paths {
 };
 
 Paths find_paths_from(const Graph& g, const string& from) {
-    unordered_map<string, int> dist;
-    unordered_map<string, int> cost;
-    unordered_map<string, bool> visited;
-    unordered_map<string, string> prev;
+    Map<string, int> dist;
+    Map<string, int> cost;
+    Map<string, bool> visited;
+    Map<string, string> prev;
 
     for (const auto& [key, value]: g.get_vertexes()) {
         dist.insert({key, key == from ? 0 : INF});
@@ -115,7 +114,7 @@ Paths find_paths_from(const Graph& g, const string& from) {
     size_t unvisited = dist.size();
     string current = from;
 
-    while (current != "") {
+    while (!current.empty()) {
         for (const auto& [key, value]: g.get_vertexes()[current]->get_edges()) {
             if (!visited[key] && (dist[current] + value->get_distance()) < dist[key]) {
                 dist[key] = dist[current] + value->get_distance();
@@ -139,11 +138,11 @@ Paths find_paths_from(const Graph& g, const string& from) {
 }
 
 void find_path_with_n_stops(const Graph& g, const string& from, const string& to, int stops) {
-    unordered_map<string, int> dist;
-    unordered_map<string, int> cost;
-    unordered_map<string, int> count;
-    unordered_map<string, bool> visited;
-    unordered_map<string, string> prev;
+    Map<string, int> dist;
+    Map<string, int> cost;
+    Map<string, int> count;
+    Map<string, bool> visited;
+    Map<string, string> prev;
 
     for (const auto& [key, value]: g.get_vertexes()) {
         dist.insert({key, key == from ? 0 : INF});
@@ -155,7 +154,7 @@ void find_path_with_n_stops(const Graph& g, const string& from, const string& to
     size_t unvisited = dist.size();
     string current = from;
 
-    while (current != "") {
+    while (!current.empty()) {
         for (const auto& [key, value]: g.get_vertexes()[current]->get_edges()) {
             if (!visited[key] && (dist[current] + value->get_distance()) < dist[key]) {
                 if (key != to || count[current] == stops) {

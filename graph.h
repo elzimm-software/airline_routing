@@ -4,17 +4,16 @@
 
 #include <string>
 #include <iostream>
-#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <tuple>
+#include <tuple> // tuple
 #include <fstream>
 #include <sstream>
-#include <algorithm>
+#include <algorithm> // sort, find
+#include "map.h"
 
 using std::string;
 using std::exception;
-using std::unordered_map;
 using std::vector;
 using std::tuple;
 using std::ifstream;
@@ -49,7 +48,7 @@ public:
 // Stores map of edges, number of incoming and outgoing flights, IATA code, and state abbreviation
 class Airport {
 private:
-    unordered_map<string, Flight*> edges; // IATA code is key, pointer to Flight is value
+    Map<string, Flight*> edges; // IATA code is key, pointer to Flight is value
     int incoming;
     int outgoing;
     string code;
@@ -57,7 +56,7 @@ private:
 public:
     Airport(string code, string state) : code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
 
-    [[nodiscard]] unordered_map<string, Flight*> get_edges() const {
+    [[nodiscard]] Map<string, Flight*> get_edges() const {
         return edges;
     }
 
@@ -104,8 +103,8 @@ string get_state_code(const string& city) {
 // Stores a map of all airports and all airports in each state.
 class Graph {
 private:
-    unordered_map<string, vector<Airport*>> by_state; // State abbreviation is key, vector of pointers to airports in said state is value
-    unordered_map<string, Airport*> vertexes; // IATA code is key, pointer to airport is value
+    Map<string, vector<Airport*>> by_state; // State abbreviation is key, vector of pointers to airports in said state is value
+    Map<string, Airport*> vertexes; // IATA code is key, pointer to airport is value
 public:
     Graph() = default;
 
@@ -113,7 +112,7 @@ public:
     // File extension is irrelevant as long as formatting is correct
     explicit Graph(const string& filename) {
         // Initialize empty map of vertexes
-        vertexes = unordered_map<string, Airport*>();
+        vertexes = Map<string, Airport*>();
         // Open file
         ifstream file(filename);
         string line;
@@ -146,11 +145,11 @@ public:
         }
     }
 
-    [[nodiscard]] unordered_map<string, Airport*> get_vertexes() const {
+    [[nodiscard]] Map<string, Airport*> get_vertexes() const {
         return vertexes;
     }
 
-    [[nodiscard]] unordered_map<string, vector<Airport*>> get_states() const {
+    [[nodiscard]] Map<string, vector<Airport*>> get_states() const {
         return by_state;
     }
 
@@ -248,11 +247,11 @@ public:
     // Graph with nondirection edges
     // Stores a map of IATA codes and vectors of edges
     class UndirectedGraph {
-        unordered_map<string, vector<UndirectedEdge>> edges;
+        Map<string, vector<UndirectedEdge>> edges;
 
         // Helper function to locate an edge between two vertexes
         // Returns -1 if no edge exists
-        int find_edge_index(const string& from, const string& to) const {
+        [[nodiscard]] int find_edge_index(const string& from, const string& to) const {
             const auto& neighbors = edges.at(from);
             // Iterate over all edges in one vertex and return the one whose destination matches the other vertex
             for (size_t i = 0; i < neighbors.size(); i++) {
@@ -301,12 +300,12 @@ public:
             }
         }
 
-        [[nodiscard]] unordered_map<string, vector<UndirectedEdge>> get_edges() const {
+        [[nodiscard]] Map<string, vector<UndirectedEdge>> get_edges() const {
             return edges;
         }
 
         // Returns a tuple of unique edges, ignoring duplicates
-        vector<tuple<string, string, int>> get_unique_edges() const {
+        [[nodiscard]] vector<tuple<string, string, int>> get_unique_edges() const {
             vector<tuple<string, string, int>> result;
             vector<string> seen;
             // Iterate over vertexes

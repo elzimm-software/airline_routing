@@ -2,51 +2,61 @@
 #ifndef AIRLINE_ROUTING_TREE_H
 #define AIRLINE_ROUTING_TREE_H
 
-#include <unordered_map>
 #include <string>
 #include <vector>
 #include <limits>
+#include <functional>
 #include "graph.h"
+#include "map.h"
 
 using std::vector;
 using std::string;
-using std::unordered_map;
 using UndirectedGraph = Graph::UndirectedGraph;
 
+// Minimal Spanning Tree
 class Tree {
-    unordered_map<string, int> edges;
+    Map<string, int> edges;
 
 public:
+
+    // Applies Prim's algorithm to generate a MST from an UndirectedGraph
     void prim_mst(const UndirectedGraph& ug) {
+        // Clear existing edges
         edges.clear();
         const auto& graph_edges = ug.get_edges();
         if (graph_edges.empty()) return;
-        unordered_map<string, bool> in_mst;
-        unordered_map<string, int> key;
-        unordered_map<string, string> parent;
+        Map<string, bool> in_mst;
+        Map<string, int> key;
+        Map<string, string> parent;
 
         vector<string> vertices;
+        // Iterate over edges and initialize maps
         for (const auto& [vertex, _]: graph_edges) {
             vertices.push_back(vertex);
             key[vertex] = std::numeric_limits<int>::max();
             in_mst[vertex] = false;
         }
 
+        // Start at the first vertex
         string start = vertices[0];
         key[start] = 0;
 
+        // Iterate over vertices
         for (size_t count = 0; count < vertices.size(); count++) {
             string u;
             int min_cost = std::numeric_limits<int>::max();
+            // Find lowest cost node not in tree
             for (const auto& v: vertices) {
                 if (!in_mst[v] && key[v] < min_cost) {
                     min_cost = key[v];
                     u = v;
                 }
             }
+            // Exit if no node found
             if (u.empty()) {
                 break;
             }
+            // Set node in mst
             in_mst[u] = true;
             if (!parent[u].empty()) {
                 string from = parent[u];
@@ -85,7 +95,7 @@ public:
 
         std::sort(all_edges.begin(), all_edges.end());
 
-        unordered_map<string, string> parent;
+        Map<string, string> parent;
         for (const auto& [vertex, _]: ug.get_edges()) {
             parent[vertex] = vertex;
         }
