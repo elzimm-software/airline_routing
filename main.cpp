@@ -4,9 +4,11 @@
 #include <regex>
 #include "graph.h"
 #include "pathing.h"
+#include "tree.h"
 
 using std::string;
 using std::ifstream;
+using UndirectedGraph = Graph::UndirectedGraph;
 
 string get_state_code(const string& city) {
     return city.substr(city.length() - 3, 2);
@@ -35,7 +37,7 @@ Graph parse_csv(const string& filename) {
         if (!g.airport_exists(arrive_code)) {
             g.add_airport(arrive_code, get_state_code(arrive_city));
         }
-        g.add_flight(depart_code,arrive_code,stoi(distance),stoi(cost));
+        g.add_flight(depart_code, arrive_code, stoi(distance), stoi(cost));
     }
     return g;
 }
@@ -48,6 +50,14 @@ int main() {
 
     //find_path_with_n_stops(g, "LAX", "MIA", 3);
 
-    g.flight_connections();
+    //g.flight_connections();
+
+    Tree prim, kruskal;
+
+    prim.prim_mst(g);
+    kruskal.kruskal_mst(g);
+
+    kruskal.print();
+
     return 0;
 }
