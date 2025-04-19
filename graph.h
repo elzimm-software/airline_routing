@@ -23,7 +23,7 @@ private:
     int distance;
     int cost;
 public:
-    Flight(Airport* destination, int distance, int cost): destination(destination), distance(distance), cost(cost) {}
+    Flight(Airport* destination, int distance, int cost) : destination(destination), distance(distance), cost(cost) {}
 
     [[nodiscard]] int get_distance() const {
         return distance;
@@ -44,7 +44,7 @@ private:
     string code; // maybe unnecessary
     string state;
 public:
-    Airport(string  code, string  state): code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
+    Airport(string code, string state) : code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
 
     [[nodiscard]] unordered_map<string, Flight*> get_edges() const {
         return edges;
@@ -71,7 +71,7 @@ public:
     }
 
     int total_flights() {
-        return incoming+outgoing;
+        return incoming + outgoing;
     }
 };
 
@@ -113,8 +113,8 @@ public:
     }
 
     [[nodiscard]] int get_edge_cost(const string& from, const string& to) const {
-        Airport* airport=vertexes.at(from);
-        Flight* flight=airport->get_edges().at(to);
+        Airport* airport = vertexes.at(from);
+        Flight* flight = airport->get_edges().at(to);
         return flight->get_cost();
     }
 
@@ -144,7 +144,7 @@ public:
         string code;
         int connections;
 
-        MiniEdge(string code, int connections): code(std::move(code)), connections(connections) {}
+        MiniEdge(string code, int connections) : code(std::move(code)), connections(connections) {}
 
 
     };
@@ -170,13 +170,13 @@ public:
         string to;
 
     public:
-        UndirectedEdge(int cost, string to): cost(cost), to(std::move(to)) {}
+        UndirectedEdge(int cost, string to) : cost(cost), to(std::move(to)) {}
     };
 
     class UndirectedGraph {
         unordered_map<string, vector<UndirectedEdge>> edges;
 
-        int find_edge_index(const string & from, const string& to) const {
+        int find_edge_index(const string& from, const string& to) const {
             const auto& neighbors = edges.at(from);
             for (size_t i = 0; i < neighbors.size(); i++) {
                 if (neighbors[i].to == to) {
@@ -193,7 +193,7 @@ public:
             }
 
             for (const auto& [vertex_key, vertex_value]: g.vertexes) {
-                for (const auto& [key,value]: vertex_value->get_edges()) {
+                for (const auto& [key, value]: vertex_value->get_edges()) {
                     edges[vertex_key];
                     edges[key];
                     int idx_vertex = find_edge_index(vertex_key, key);
@@ -202,7 +202,7 @@ public:
                     if (idx_vertex != -1) {
                         if (value->get_cost() < edges[vertex_key][idx_vertex].cost) {
                             edges[vertex_key][idx_vertex].cost = value->get_cost();
-                            edges[key][idx_edge].cost=value->get_cost();
+                            edges[key][idx_edge].cost = value->get_cost();
                         }
                     } else {
                         edges[vertex_key].emplace_back(value->get_cost(), key);

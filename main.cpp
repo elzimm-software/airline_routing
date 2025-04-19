@@ -37,7 +37,7 @@ Graph parse_csv(const string& filename) {
         if (!g.airport_exists(arrive_code)) {
             g.add_airport(arrive_code, get_state_code(arrive_city));
         }
-        g.add_flight(depart_code,arrive_code,stoi(distance),stoi(cost));
+        g.add_flight(depart_code, arrive_code, stoi(distance), stoi(cost));
     }
     return g;
 }
@@ -57,7 +57,6 @@ int main() {
     prim.prim_mst(g);
     kruskal.kruskal_mst(g);
 
-    prim.print();
     kruskal.print();
 
     return 0;
