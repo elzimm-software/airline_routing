@@ -4,6 +4,7 @@
 #include <regex>
 #include "graph.h"
 #include "pathing.h"
+#include "tree.h"
 
 using std::string;
 using std::ifstream;
@@ -52,6 +53,11 @@ int main() {
     //g.flight_connections();
 
     UndirectedGraph ug = {g};
+
+    Tree t;
+
+    t.prim_mst(g);
+    t.print();
 
     return 0;
 }

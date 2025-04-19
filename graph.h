@@ -209,6 +209,10 @@ public:
                 }
             }
         }
+
+        [[nodiscard]] unordered_map<string, vector<UndirectedEdge>> get_edges() const {
+            return edges;
+        }
     };
 };
 
