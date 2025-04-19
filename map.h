@@ -6,15 +6,12 @@
 #include <stdexcept>
 #include <utility>
 
-// Simple hash-based map using separate chaining
-template <typename K, typename V>
+// Simple hash-based map using separate chaining (vector-only)
+template<typename K, typename V>
 class Map {
 private:
     struct Node { // linked-list node
-        K key;
-        V value;
-        Node* next;
-
+        K key; V value; Node* next;
         Node(const K& k, const V& v) : key(k), value(v), next(nullptr) {}
     };
 
@@ -24,7 +21,7 @@ private:
 
     size_t hash_key(const K& key) const { // polynomial rolling hash
         size_t h = 0;
-        for (char c: key) h = h * 31 + static_cast<unsigned char>(c);
+        for (char c : key) h = h * 31 + static_cast<unsigned char>(c);
         return h % bucket_count;
     }
 
@@ -36,19 +33,14 @@ public:
     ~Map() { clear(); } // destructor
 
     void clear() { // remove all entries
-        for (Node* head: buckets) {
-            while (head) {
-                Node* next = head->next;
-                delete head;
-                head = next;
-            }
+        for (Node* head : buckets) {
+            while (head) { Node* next = head->next; delete head; head = next; }
         }
-        buckets.clear();
-        keys.clear();
+        buckets.clear(); keys.clear();
     }
 
-    [[nodiscard]] bool empty() const { return keys.empty(); } // check if map has no entries
-    [[nodiscard]] size_t size() const { return keys.size(); } // number of entries
+    bool empty() const { return keys.empty(); } // check if map has no entries
+    size_t size() const { return keys.size(); } // number of entries
 
     bool contains(const K& key) const { // check key existence
         size_t idx = hash_key(key);
@@ -60,10 +52,7 @@ public:
     void insert(const K& key, const V& value) { // insert or update
         size_t idx = hash_key(key);
         for (Node* cur = buckets[idx]; cur; cur = cur->next) {
-            if (cur->key == key) {
-                cur->value = value;
-                return;
-            }
+            if (cur->key == key) { cur->value = value; return; }
         }
         Node* node = new Node(key, value);
         node->next = buckets[idx];
@@ -76,7 +65,6 @@ public:
         for (Node* cur = buckets[idx]; cur; cur = cur->next) if (cur->key == key) return cur->value;
         throw std::out_of_range("Key not found");
     }
-
     const V& at(const K& key) const { // const access
         size_t idx = hash_key(key);
         for (Node* cur = buckets[idx]; cur; cur = cur->next) if (cur->key == key) return cur->value;
@@ -89,18 +77,11 @@ public:
     }
 
     class Iterator { // range-based iterator
-        const Map* map;
-        size_t pos;
+        const Map* map; size_t pos;
     public:
         Iterator(const Map* m, size_t p) : map(m), pos(p) {}
-
-        Iterator& operator++() {
-            ++pos;
-            return *this;
-        }
-
+        Iterator& operator++() { ++pos; return *this; }
         bool operator!=(const Iterator& o) const { return map != o.map || pos != o.pos; }
-
         value_type operator*() const {
             const K& k = map->keys[pos];
             V& v = const_cast<Map*>(map)->at(k);
@@ -109,8 +90,7 @@ public:
     };
 
     Iterator begin() const { return Iterator(this, 0); } // start iterator
-    Iterator end() const { return Iterator(this, keys.size()); } // end iterator
+    Iterator end()   const { return Iterator(this, keys.size()); } // end iterator
 };
-
 
 #endif
