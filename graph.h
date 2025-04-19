@@ -7,11 +7,13 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 using std::string;
 using std::exception;
 using std::unordered_map;
 using std::vector;
+using std::tuple;
 
 class Airport;
 
@@ -155,7 +157,7 @@ public:
         vector<MiniEdge> v;
         std::cout << "Airport\tConnections" << std::endl;
         for (const auto& airport: vertexes) {
-            v.push_back(MiniEdge(airport.first, airport.second->total_flights()));
+            v.emplace_back(airport.first, airport.second->total_flights());
         }
         std::sort(v.begin(), v.end(), compareMiniEdge);
         for (const MiniEdge& edge: v) {
@@ -212,6 +214,22 @@ public:
 
         [[nodiscard]] unordered_map<string, vector<UndirectedEdge>> get_edges() const {
             return edges;
+        }
+
+        vector<tuple<string, string, int>> get_unique_edges() const {
+            vector<tuple<string, string, int>> result;
+            vector<string> seen;
+            for (const auto& [from, neighbors]: edges) {
+                for (const auto& edge: neighbors) {
+                    const string& to = edge.to;
+                    string key = (from < to) ? from + to : to + from;
+                    if (std::find(seen.begin(), seen.end(), key) == seen.end()) {
+                        seen.push_back(key);
+                        result.emplace_back(from, edge.to, edge.cost);
+                    }
+                }
+            }
+            return result;
         }
     };
 };

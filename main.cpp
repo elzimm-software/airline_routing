@@ -52,12 +52,13 @@ int main() {
 
     //g.flight_connections();
 
-    UndirectedGraph ug = {g};
+    Tree prim, kruskal;
 
-    Tree t;
+    prim.prim_mst(g);
+    kruskal.kruskal_mst(g);
 
-    t.prim_mst(g);
-    t.print();
+    prim.print();
+    kruskal.print();
 
     return 0;
 }
