@@ -8,12 +8,14 @@
 #include <utility>
 #include <vector>
 #include <tuple>
+#include <fstream>
 
 using std::string;
 using std::exception;
 using std::unordered_map;
 using std::vector;
 using std::tuple;
+using std::ifstream;
 
 class Airport;
 
@@ -41,7 +43,7 @@ private:
     unordered_map<string, Flight*> edges;
     int incoming;
     int outgoing;
-    string code; // maybe unnecessary
+    string code;
     string state;
 public:
     Airport(string code, string state) : code(std::move(code)), state(std::move(state)), incoming(0), outgoing(0) {}
@@ -79,6 +81,10 @@ bool Flight::is_terminal() {
     return destination->get_edges().empty();
 }
 
+string get_state_code(const string& city) {
+    return city.substr(city.length() - 3, 2);
+}
+
 class Graph {
 private:
     unordered_map<string, vector<Airport*>> by_state;
@@ -86,8 +92,32 @@ private:
 public:
     Graph() = default;
 
-    explicit Graph(size_t capacity) {
-        vertexes = unordered_map<string, Airport*>(capacity);
+    explicit Graph(const string& filename) {
+
+        vertexes = unordered_map<string, Airport*>();
+        ifstream file(filename);
+        string line;
+        string depart_code, arrive_code, depart_city, arrive_city, distance, cost;
+        std::getline(file, line);
+        while (file) {
+            std::getline(file, line);
+            std::istringstream ss(line);
+            std::getline(ss, depart_code, ',');
+            std::getline(ss, arrive_code, ',');
+            std::getline(ss, depart_city, ',');
+            std::getline(ss, depart_city, ',');
+            std::getline(ss, arrive_city, ',');
+            std::getline(ss, arrive_city, ',');
+            std::getline(ss, distance, ',');
+            std::getline(ss, cost, ',');
+            if (!airport_exists(depart_code)) {
+                add_airport(depart_code, get_state_code(depart_city));
+            }
+            if (!airport_exists(arrive_code)) {
+                add_airport(arrive_code, get_state_code(arrive_city));
+            }
+            add_flight(depart_code, arrive_code, stoi(distance), stoi(cost));
+        }
     }
 
     [[nodiscard]] unordered_map<string, Airport*> get_vertexes() const {
