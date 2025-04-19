@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <functional>
 #include "graph.h"
 
 using std::vector;
@@ -13,10 +14,13 @@ using std::string;
 using std::unordered_map;
 using UndirectedGraph = Graph::UndirectedGraph;
 
+// Minimal Spanning Tree
 class Tree {
     unordered_map<string, int> edges;
 
 public:
+    // Prim's MST generation algorithm
+    // Essentially the same as Dijkstra just a different end structure
     void prim_mst(const UndirectedGraph& ug) {
         edges.clear();
         const auto& graph_edges = ug.get_edges();
@@ -65,6 +69,8 @@ public:
         }
     }
 
+    // Kruskal MST generation algorithm
+    // Connect the smallest edges possible, avoiding cycles, until MST is complete
     void kruskal_mst(const UndirectedGraph& ug) {
         struct FlatEdge {
             string from;
@@ -83,13 +89,16 @@ public:
             all_edges.push_back({from, to, cost});
         }
 
+        // Sort edges by weight
         std::sort(all_edges.begin(), all_edges.end());
 
         unordered_map<string, string> parent;
+        // Set node as its own parent
         for (const auto& [vertex, _]: ug.get_edges()) {
             parent[vertex] = vertex;
         }
 
+        // Recursive find implementation
         std::function<string(string)> find = [&](const string& x) {
             if (parent[x] != x) {
                 parent[x] = find(parent[x]);
@@ -97,6 +106,7 @@ public:
             return parent[x];
         };
 
+        // Prevents cycles from forming
         auto unite = [&](const string& a, const string& b) -> bool {
             string root_a = find(a);
             string root_b = find(b);
@@ -115,6 +125,7 @@ public:
         }
     }
 
+    // Print either format of tree
     void print() {
         int acc = 0;
         std::cout << "Minimal Spanning Tree" << std::endl << "Edge\tWeight" << std::endl;
