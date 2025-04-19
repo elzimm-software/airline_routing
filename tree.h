@@ -12,6 +12,7 @@
 using std::vector;
 using std::string;
 using std::unordered_map;
+using std::get;
 using UndirectedGraph = Graph::UndirectedGraph;
 
 // Minimal Spanning Tree
@@ -30,10 +31,10 @@ public:
         unordered_map<string, string> parent;
 
         vector<string> vertices;
-        for (const auto& [vertex, _]: graph_edges) {
-            vertices.push_back(vertex);
-            key[vertex] = std::numeric_limits<int>::max();
-            in_mst[vertex] = false;
+        for (const auto& vertex: graph_edges) {
+            vertices.push_back(vertex.first);
+            key[vertex.first] = std::numeric_limits<int>::max();
+            in_mst[vertex.first] = false;
         }
 
         string start = vertices[0];
@@ -85,8 +86,8 @@ public:
         edges.clear();
         auto edge_map = ug.get_edges();
         vector<FlatEdge> all_edges;
-        for (const auto& [from, to, cost]: ug.get_unique_edges()) {
-            all_edges.push_back({from, to, cost});
+        for (const auto& edge: ug.get_unique_edges()) {
+            all_edges.push_back({get<0>(edge), get<1>(edge), get<2>(edge)});
         }
 
         // Sort edges by weight
@@ -94,8 +95,8 @@ public:
 
         unordered_map<string, string> parent;
         // Set node as its own parent
-        for (const auto& [vertex, _]: ug.get_edges()) {
-            parent[vertex] = vertex;
+        for (const auto& vertex: ug.get_edges()) {
+            parent[vertex.first] = vertex.first;
         }
 
         // Recursive find implementation
@@ -129,9 +130,9 @@ public:
     void print() {
         int acc = 0;
         std::cout << "Minimal Spanning Tree" << std::endl << "Edge\tWeight" << std::endl;
-        for (const auto& [key, value]: edges) {
-            std::cout << key.substr(0, 3) << " - " << key.substr(3, 3) << "\t" << value << std::endl;
-            acc += value;
+        for (const auto& edge: edges) {
+            std::cout << edge.first.substr(0, 3) << " - " << edge.first.substr(3, 3) << "\t" << edge.second << std::endl;
+            acc += edge.second;
         }
         std::cout << "Total Cost of MST: " << acc << std::endl;
     }

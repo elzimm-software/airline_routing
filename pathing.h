@@ -9,6 +9,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "graph.h"
+#include "util.h"
 
 using std::string;
 using std::vector;
@@ -69,7 +70,7 @@ struct Paths {
         p.cost = cost[to];                    // retrieve cost
         string code = to;
         p.path.push_back(code);               // start building reverse path
-        while (prev.contains(code)) {         // walk back through prev[] until origin
+        while (contains(prev,code)) {         // walk back through prev[] until origin
             code = prev[code];
             p.path.push_back(code);
         }
@@ -94,7 +95,7 @@ struct Paths {
             p.distance = dist[code];                // set distance
             p.cost = cost[code];                    // set cost
             p.path.push_back(code);                 // build reverse path
-            while (prev.contains(code)) {
+            while (contains(prev,code)) {
                 code = prev[code];
                 p.path.push_back(code);
             }
@@ -115,21 +116,21 @@ Paths find_paths_from(const Graph& g, const string& from) {
     unordered_map<string, string> prev;      // predecessor map
 
     // initialize all maps: origin=0, others=INF
-    for (const auto& [key, value]: g.get_vertexes()) {
-        dist.insert({key, key == from ? 0 : INF});
-        cost.insert({key, key == from ? 0 : INF});
-        visited.insert({key, false});
+    for (const auto& vertex: g.get_vertexes()) {
+        dist.insert({vertex.first, vertex.first == from ? 0 : INF});
+        cost.insert({vertex.first, vertex.first == from ? 0 : INF});
+        visited.insert({vertex.first, false});
     }
 
     size_t unvisited = dist.size();          // count how many remain
     string current = from;                   // start at origin
 
     while (current != "") {                  // loop until no unvisited reachable node
-        for (const auto& [key, value]: g.get_vertexes()[current]->get_edges()) {
-            if (!visited[key] && (dist[current] + value->get_distance()) < dist[key]) {
-                dist[key] = dist[current] + value->get_distance();  // relax by distance
-                cost[key] = cost[current] + value->get_cost();      // relax by cost
-                prev[key] = current;                                // record predecessor
+        for (const auto& edge: g.get_vertexes()[current]->get_edges()) {
+            if (!visited[edge.first] && (dist[current] + edge.second->get_distance()) < dist[edge.first]) {
+                dist[edge.first] = dist[current] + edge.second->get_distance();  // relax by distance
+                cost[edge.first] = cost[current] + edge.second->get_cost();      // relax by cost
+                prev[edge.first] = current;                                // record predecessor
             }
         }
         visited[current] = true;             // mark done
@@ -137,10 +138,10 @@ Paths find_paths_from(const Graph& g, const string& from) {
         string u;
         int u_min = INF;
         // find next unvisited with smallest dist (no priority queue used)
-        for (const auto& [key, value]: dist) {
-            if (value < u_min && !g.get_vertexes()[key]->is_terminal() && !visited[key]) {
-                u = key;
-                u_min = value;
+        for (const auto& item: dist) {
+            if (item.second < u_min && !g.get_vertexes()[item.first]->is_terminal() && !visited[item.first]) {
+                u = item.first;
+                u_min = item.second;
             }
         }
         current = u;                         // move to next node or "" if none remain
@@ -157,24 +158,24 @@ void find_path_with_n_stops(const Graph& g, const string& from, const string& to
     unordered_map<string, string> prev;   // predecessor map
 
     // initialize all maps: origin=0/0 stops, others=INF/0
-    for (const auto& [key, value]: g.get_vertexes()) {
-        dist.insert({key, key == from ? 0 : INF});
-        cost.insert({key, key == from ? 0 : INF});
-        count.insert({key, 0});
-        visited.insert({key, false});
+    for (const auto& vertex: g.get_vertexes()) {
+        dist.insert({vertex.first, vertex.first == from ? 0 : INF});
+        cost.insert({vertex.first, vertex.first == from ? 0 : INF});
+        count.insert({vertex.first, 0});
+        visited.insert({vertex.first, false});
     }
 
     size_t unvisited = dist.size();
     string current = from;
 
     while (current != "") {
-        for (const auto& [key, value]: g.get_vertexes()[current]->get_edges()) {
-            if (!visited[key] && (dist[current] + value->get_distance()) < dist[key]) {
-                if (key != to || count[current] == stops) {  // enforce stop limit
-                    dist[key] = dist[current] + value->get_distance();
-                    cost[key] = cost[current] + value->get_cost();
-                    count[key] = count[current] + 1;
-                    prev[key] = current;
+        for (const auto& edge: g.get_vertexes()[current]->get_edges()) {
+            if (!visited[edge.first] && (dist[current] + edge.second->get_distance()) < dist[edge.first]) {
+                if (edge.first != to || count[current] == stops) {  // enforce stop limit
+                    dist[edge.first] = dist[current] + edge.second->get_distance();
+                    cost[edge.first] = cost[current] + edge.second->get_cost();
+                    count[edge.first] = count[current] + 1;
+                    prev[edge.first] = current;
                 }
             }
         }
@@ -183,10 +184,10 @@ void find_path_with_n_stops(const Graph& g, const string& from, const string& to
         string u;
         int u_min = INF;
         // find next unvisited with smallest dist
-        for (const auto& [key, value]: dist) {
-            if (value < u_min && !g.get_vertexes()[key]->is_terminal() && !visited[key]) {
-                u = key;
-                u_min = value;
+        for (const auto& item: dist) {
+            if (item.second < u_min && !g.get_vertexes()[item.first]->is_terminal() && !visited[item.first]) {
+                u = item.first;
+                u_min = item.second;
             }
         }
         current = u;
@@ -196,7 +197,7 @@ void find_path_with_n_stops(const Graph& g, const string& from, const string& to
     string code = to;
     vector<string> p;
     p.push_back(code);
-    while (prev.contains(code)) {
+    while (contains(prev, code)) {
         code = prev[code];
         p.push_back(code);
     }
