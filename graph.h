@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include "util.h"
 
 using std::string;
 using std::exception;
@@ -184,7 +185,7 @@ public:
         // Insert will not overwrite duplicate airports
         vertexes.insert({code, ap});
         // If state is new create it
-        if (!by_state.contains(state)) {
+        if (!contains(by_state,state)) {
             by_state.insert({state, {ap}});
         } else { // Else add airport to state vector
             by_state.at(state).push_back(ap);
@@ -204,7 +205,7 @@ public:
     }
 
     bool airport_exists(const string& code) {
-        return vertexes.contains(code);
+        return contains(vertexes, code);
     }
 
     // Simplified edge struct for use in flight_connections function
@@ -274,28 +275,28 @@ public:
             }
 
             // Iterate over vertexes
-            for (const auto& [vertex_key, vertex_value]: g.vertexes) {
+            for (const auto& vertex: g.vertexes) {
                 // Iterate over edges of each vertex
-                for (const auto& [key, value]: vertex_value->get_edges()) {
+                for (const auto& edge: vertex.second->get_edges()) {
                     // Ensure vertexes exist
                     // This it seems like it does the same as edges[vertex] above, but it doesnt work right without it
                     // So we just don't touch it
-                    edges[vertex_key];
-                    edges[key];
+                    edges[vertex.first];
+                    edges[edge.first];
                     // locate the indexes the edge in both directions
-                    int idx_vertex = find_edge_index(vertex_key, key);
-                    int idx_edge = find_edge_index(key, vertex_key);
+                    int idx_vertex = find_edge_index(vertex.first, edge.first);
+                    int idx_edge = find_edge_index(edge.first, vertex.first);
 
                     // Verify index exists
                     if (idx_vertex != -1) {
                         // Only update vertex if cost is less than existing cost
-                        if (value->get_cost() < edges[vertex_key][idx_vertex].cost) {
-                            edges[vertex_key][idx_vertex].cost = value->get_cost();
-                            edges[key][idx_edge].cost = value->get_cost();
+                        if (edge.second->get_cost() < edges[vertex.first][idx_vertex].cost) {
+                            edges[vertex.first][idx_vertex].cost = edge.second->get_cost();
+                            edges[edge.first][idx_edge].cost = edge.second->get_cost();
                         }
                     } else { // Else create vertex
-                        edges[vertex_key].emplace_back(value->get_cost(), key);
-                        edges[key].emplace_back(value->get_cost(), vertex_key);
+                        edges[vertex.first].emplace_back(edge.second->get_cost(), edge.first);
+                        edges[edge.first].emplace_back(edge.second->get_cost(), vertex.first);
                     }
                 }
             }
@@ -310,19 +311,19 @@ public:
             vector<tuple<string, string, int>> result;
             vector<string> seen;
             // Iterate over vertexes
-            for (const auto& [from, neighbors]: edges) {
+            for (const auto& vertex: edges) {
                 // Iterate over each edge
-                for (const auto& edge: neighbors) {
+                for (const auto& edge: vertex.second) {
                     // Convert edge from tuple half to string
                     const string& to = edge.to;
                     // Concatenate string in alphabetical order
-                    string key = (from < to) ? from + to : to + from;
+                    string key = (vertex.first < to) ? vertex.first + to : to + vertex.first;
                     // If key has not been seen
                     if (std::find(seen.begin(), seen.end(), key) == seen.end()) {
                         // See it
                         seen.push_back(key);
                         // Place into output vector
-                        result.emplace_back(from, edge.to, edge.cost);
+                        result.emplace_back(vertex.first, edge.to, edge.cost);
                     }
                 }
             }
